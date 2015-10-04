@@ -35,6 +35,8 @@
           </li>
           <li><a href="#/resources/">Resources</a>
           </li>
+          <li><a href="#/hues/">Hues</a>
+          </li>
         </ul>
       </div>
     </div>
@@ -48,6 +50,26 @@
       </div>
     </div>
   </div>
+  
+  <!-- Page Template -->
+  <script type="text/html" id="hue-list">
+    <div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody data-bind="foreach: { data: entries, as: 'entry'}">
+          <tr>
+            <td data-bind="text: id"></td>
+            <td data-bind="text: internalipaddress"></td>
+          </tr>
+        </tbody>
+    </div>
+  </script>
+
   <script type='text/javascript' src="./static/js/jquery-2.1.0.js"></script>
   <script type='text/javascript' src="./static/js/bootstrap.min.js"></script>
   <script type='text/javascript' src='./static/js/knockout-3.1.0.js'></script>
@@ -58,13 +80,22 @@
   <script type='text/javascript' src='./static/js/rx.all.js'></script>
 
   <script type="text/javascript">
-  $(function() {
-    var db = new PouchDB('Atmosphere');
+  (function($) {
+    // var db = new PouchDB('Atmosphere');
+
+    var renderTemplate = function(templateId, viewModel) {
+      ko.renderTemplate(
+        templateId,
+        viewModel, {
+          afterRender: function(nodes) {}
+        },
+        $("#main")[0]
+      );
+    }
 
     var app = $.sammy("#main", function() {
       this.debug = true;
       this.get("#/", function() {
-        this.redirect("#/presets/");
       });
       this.get("#/presets/", function() {
       });
@@ -72,10 +103,15 @@
       });
       this.get("#/resources/", function() {
       });
+      this.get("#/hues/", function() {
+        $.get("https://www.meethue.com/api/nupnp", function(data){
+          renderTemplate("hue-list", {entries: ko.observableArray(data)});
+        });
+      });
     });
 
     app.run("#/");
-  });
+  })(jQuery);
   </script>
 
 </body>
