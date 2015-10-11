@@ -59,12 +59,23 @@
           <tr>
             <th>ID</th>
             <th>IP Address</th>
+            <th>User Id</th>
+            <th>Link State</th>
           </tr>
         </thead>
         <tbody data-bind="foreach: { data: entries, as: 'entry'}">
           <tr>
             <td data-bind="text: id"></td>
-            <td data-bind="text: internalipaddress"></td>
+            <td data-bind="text: address"></td>
+            <td data-bind="text: username"></td>
+            <td>
+              <div data-bind="if: status() == 'linkable'">
+                <a class="btn btn-default" data-bind="click: link">Link</a>
+              </div>
+              <div data-bind="ifnot: status() == 'linkable'">
+                <div data-bind="text: status"></div>
+              </div>
+            </td>
           </tr>
         </tbody>
     </div>
@@ -81,7 +92,14 @@
 
   <script type="text/javascript">
   (function($) {
-    // var db = new PouchDB('Atmosphere');
+    var db = new PouchDB('AtmosphereDb');
+    var self = this;
+    
+    self.hue = {
+      config: {
+        devicetype: "atmosphere#WebApp"
+      }
+    }
 
     var renderTemplate = function(templateId, viewModel) {
       ko.renderTemplate(
@@ -91,6 +109,63 @@
         },
         $("#main")[0]
       );
+    }
+    
+    var MakeHueBridgeAccessUrl = function(ipaddress) {
+      return "http://" + ipaddress + "/api";
+    };
+    
+    var RequestDeveloperId = function(ipaddress, func) {
+      $.post(MakeHueBridgeAccessUrl(ipaddress), JSON.stringify(self.hue.config), func);
+    };
+    
+    var HueBridgeViewModel = function(rawData) {
+      var self = this;
+      self.id = rawData.id;
+      self.address = rawData.internalipaddress;
+      self.status = ko.observable("waiting...");
+      self.username = ko.observable(null);
+      self.link = function(){
+          RequestDeveloperId(self.address, function(data){
+            if(data[0].success) {
+              db.post({
+                address: self.address,
+                username: data[0].success.username
+              }).then(function(){
+                self.username(data[0].success.username);
+                self.status("Linked");
+              }).catch(function(err){
+                console.error("errur occured");
+                console.error(err);
+              })
+            }
+            else if(data[0].error){
+              console.error(data[0].error);
+              self.status(data[0].error.description);
+              setTimeout(
+                function(){
+                  self.status("linkable");
+                  },
+                  2000
+              );
+              
+            }
+          });        
+      };
+      
+      self.HasUserName = function()
+      {
+        db.query(function (doc, emit) {
+          emit(doc.address, doc.username);
+        }, {key: self.address}).then(function (result) {
+          self.username(result.rows[0].value);
+          self.status("Linked");
+        }).catch(function (err) {
+          self.status("linkable");
+        });
+      }
+      
+      self.HasUserName();      
     }
 
     var app = $.sammy("#main", function() {
@@ -104,8 +179,14 @@
       this.get("#/resources/", function() {
       });
       this.get("#/hues/", function() {
+        var hues = ko.observableArray();
+        renderTemplate("hue-list", {entries: hues})
+        
         $.get("https://www.meethue.com/api/nupnp", function(data){
-          renderTemplate("hue-list", {entries: ko.observableArray(data)});
+          var observableData = $.map(data, function(d,i){
+            return new HueBridgeViewModel(d);
+          });
+          hues(observableData);
         });
       });
     });
