@@ -22,9 +22,7 @@
     "karma-chrome-launcher": "^0.2.1",
     "karma-jasmine": "^0.3.6",
     "tsc": "^1.20150623.0",
-    "tsd": "^0.6.5"
-  },
-  "dependencies": {
+    "tsd": "^0.6.5",
     "karma-typescript-preprocessor": "0.0.21"
   }
 }
