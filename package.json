@@ -1,0 +1,24 @@
+{
+  "name": "atmosphere",
+  "version": "1.0.0",
+  "description": "make atmosphere.",
+  "main": "scripts/js/app.jp",
+  "scripts": {
+    "test": "karma init"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hakomikan/Atmosphere.git"
+  },
+  "author": "hakomikan",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/hakomikan/Atmosphere/issues"
+  },
+  "homepage": "https://github.com/hakomikan/Atmosphere#readme",
+  "devDependencies": {
+    "jasmine": "^2.3.2",
+    "karma": "^0.13.14",
+    "tsc": "^1.20150623.0"
+  }
+}
