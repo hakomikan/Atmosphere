@@ -115,8 +115,8 @@
       return "http://" + ipaddress + "/api";
     };
     
-    var RequestDeveloperId = function(ipaddress, func) {
-      $.post(MakeHueBridgeAccessUrl(ipaddress), JSON.stringify(self.hue.config), func);
+    var RequestDeveloperId = function(ipaddress) {
+      return $.post(MakeHueBridgeAccessUrl(ipaddress), JSON.stringify(self.hue.config));
     };
     
     var HueBridgeViewModel = function(rawData) {
@@ -126,7 +126,8 @@
       self.status = ko.observable("waiting...");
       self.username = ko.observable(null);
       self.link = function(){
-          RequestDeveloperId(self.address, function(data){
+          RequestDeveloperId(self.address)
+          .then(function(data){
             if(data[0].success) {
               db.post({
                 address: self.address,
@@ -182,7 +183,8 @@
         var hues = ko.observableArray();
         renderTemplate("hue-list", {entries: hues})
         
-        $.get("https://www.meethue.com/api/nupnp", function(data){
+        $.get("https://www.meethue.com/api/nupnp")
+        .then(function(data){
           var observableData = $.map(data, function(d,i){
             return new HueBridgeViewModel(d);
           });
