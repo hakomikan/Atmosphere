@@ -1,0 +1,4 @@
+.PHONY: reload
+
+reload: $(ls -R, *)
+    sh chrome-reload Atmosphere
